@@ -2,7 +2,8 @@
 
 # GenieACS Docker Universal Installer
 # Compatible with any VPS and ZeroTier network configuration
-# Version: 1.0
+# Features: Full auto ZeroTier installation, network join, IP detection, improved error handling, fixed ZeroTier status, comprehensive Docker registry fixes
+# Version: 1.6
 
 # Color definitions
 RED='\033[0;31m'
@@ -17,7 +18,7 @@ NC='\033[0m' # No Color
 # Configuration variables
 INSTALL_DIR="/opt/genieacs-docker"
 DATA_DIR="/opt/genieacs-docker/data"
-LOG_FILE="/tmp/genieacs-docker-install.log"
+LOG_FILE="/var/log/genieacs-docker-install.log"
 
 # Function to display spinner
 spinner() {
@@ -39,13 +40,23 @@ run_command() {
     local cmd="$1"
     local msg="$2"
     printf "${YELLOW}%-60s${NC}" "$msg..."
-    eval "$cmd" >> "$LOG_FILE" 2>&1 &
-    spinner $!
-    if [ $? -eq 0 ]; then
+
+    # Execute command with better error handling
+    if eval "$cmd" >> "$LOG_FILE" 2>&1; then
         echo -e "${GREEN}Done${NC}"
+        return 0
     else
+        local exit_code=$?
         echo -e "${RED}Failed${NC}"
-        echo -e "${RED}Check log file: $LOG_FILE${NC}"
+        echo -e "${RED}Command failed with exit code: $exit_code${NC}"
+
+        # Show last few lines of log for debugging
+        if [ -f "$LOG_FILE" ]; then
+            echo -e "${YELLOW}Last few lines from log:${NC}"
+            tail -n 5 "$LOG_FILE" 2>/dev/null || echo "Could not read log file"
+            echo -e "${RED}Full log available at: $LOG_FILE${NC}"
+        fi
+
         exit 1
     fi
 }
@@ -80,12 +91,21 @@ print_banner() {
     echo -e "${NC}"
 }
 
-# Check for root access
+# Check for root access and system requirements
 check_root() {
     if [ "$EUID" -ne 0 ]; then
         echo -e "${RED}This script must be run as root${NC}"
+        echo -e "${YELLOW}Please run: sudo $0${NC}"
         exit 1
     fi
+
+    # Check if we can write to common directories
+    for dir in "/var/log" "/opt" "/usr/local/bin"; do
+        if [ ! -w "$dir" ]; then
+            echo -e "${RED}Cannot write to $dir - permission issue${NC}"
+            exit 1
+        fi
+    done
 }
 
 # Detect OS and version
@@ -156,13 +176,128 @@ setup_directories() {
     run_command "chmod -R 755 $INSTALL_DIR" "Setting directory permissions"
 }
 
+# Check if ZeroTier is installed
+check_zerotier_installed() {
+    if command -v zerotier-cli > /dev/null 2>&1; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Install ZeroTier
+install_zerotier() {
+    echo -e "\n${MAGENTA}${BOLD}Installing ZeroTier...${NC}"
+
+    if check_zerotier_installed; then
+        echo -e "${GREEN}ZeroTier is already installed${NC}"
+        return 0
+    fi
+
+    echo -e "${CYAN}ZeroTier not found. Installing ZeroTier...${NC}"
+    run_command "curl -s https://install.zerotier.com | bash" "Installing ZeroTier"
+
+    # Wait for ZeroTier service to be ready
+    echo -e "${CYAN}Waiting for ZeroTier service to start...${NC}"
+    local timeout=30
+    local counter=0
+
+    while [ $counter -lt $timeout ]; do
+        if systemctl is-active --quiet zerotier-one; then
+            echo -e "${GREEN}ZeroTier service is running${NC}"
+            break
+        fi
+        sleep 1
+        counter=$((counter + 1))
+    done
+
+    if [ $counter -ge $timeout ]; then
+        echo -e "${RED}ZeroTier service failed to start within $timeout seconds${NC}"
+        exit 1
+    fi
+
+    # Verify installation
+    if check_zerotier_installed; then
+        echo -e "${GREEN}ZeroTier installed successfully${NC}"
+        return 0
+    else
+        echo -e "${RED}ZeroTier installation failed${NC}"
+        exit 1
+    fi
+}
+
+# Join ZeroTier network and wait for IP
+join_zerotier_network() {
+    local network_id="$1"
+
+    echo -e "\n${CYAN}Joining ZeroTier network: $network_id${NC}"
+
+    # Join the network
+    if ! zerotier-cli join "$network_id" >/dev/null 2>&1; then
+        echo -e "${RED}Failed to join ZeroTier network: $network_id${NC}"
+        exit 1
+    fi
+
+    echo -e "${GREEN}Successfully joined network: $network_id${NC}"
+    echo -e "${YELLOW}Please authorize this device in your ZeroTier Central dashboard${NC}"
+    echo -e "${YELLOW}Waiting for network authorization and IP assignment...${NC}"
+
+    # Wait for IP address assignment
+    local timeout=300  # 5 minutes
+    local counter=0
+    local check_interval=5
+
+    while [ $counter -lt $timeout ]; do
+        local network_info
+        network_info=$(zerotier-cli listnetworks 2>/dev/null | grep "$network_id")
+
+        if [ -n "$network_info" ]; then
+            # Check if we have an IP address
+            local ip_address
+            ip_address=$(echo "$network_info" | awk '{print $NF}' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/')
+
+            if [ -n "$ip_address" ]; then
+                ZEROTIER_IP="${ip_address%/*}"  # Remove CIDR notation
+                echo -e "${GREEN}ZeroTier IP assigned: $ZEROTIER_IP${NC}"
+                return 0
+            fi
+        fi
+
+        printf "${CYAN}.${NC}"
+        sleep $check_interval
+        counter=$((counter + check_interval))
+    done
+
+    echo -e "\n${RED}Timeout waiting for IP address assignment after $((timeout/60)) minutes${NC}"
+    echo -e "${YELLOW}Please check:${NC}"
+    echo -e "  1. Device is authorized in ZeroTier Central dashboard"
+    echo -e "  2. Network has available IP addresses"
+    echo -e "  3. Network configuration is correct"
+    echo -e "\nYou can continue with manual IP configuration or retry later."
+
+    local choice
+    read -p "Continue with installation? (y/n): " choice
+    if [[ "$choice" != "y" && "$choice" != "Y" ]]; then
+        exit 1
+    fi
+
+    ZEROTIER_IP="auto-detect"
+    return 1
+}
+
 # Detect existing ZeroTier networks
 detect_zerotier_networks() {
     echo -e "\n${CYAN}Detecting existing ZeroTier networks...${NC}"
 
     # Check if ZeroTier is installed
-    if ! command -v zerotier-cli > /dev/null 2>&1; then
-        echo -e "${YELLOW}ZeroTier not found. Will need to configure network ID manually.${NC}"
+    if ! check_zerotier_installed; then
+        echo -e "${YELLOW}ZeroTier not found.${NC}"
+        return 1
+    fi
+
+    # Check if ZeroTier service is running
+    if ! systemctl is-active --quiet zerotier-one; then
+        echo -e "${YELLOW}ZeroTier service is not running.${NC}"
         return 1
     fi
 
@@ -171,7 +306,7 @@ detect_zerotier_networks() {
     networks_output=$(zerotier-cli listnetworks 2>/dev/null)
 
     if [ $? -ne 0 ] || [ -z "$networks_output" ]; then
-        echo -e "${YELLOW}No ZeroTier networks found or ZeroTier service not running.${NC}"
+        echo -e "${YELLOW}No ZeroTier networks found.${NC}"
         return 1
     fi
 
@@ -224,17 +359,33 @@ display_network_menu() {
     done <<< "$networks_info"
 
     echo -e "${CYAN}└─────┴──────────────────┴─────────────────────┴────────────┘${NC}"
-    echo -e "${CYAN}$((counter-1)). Enter new Network ID manually${NC}"
+    echo -e "\n${CYAN}Available Options:${NC}"
+    for ((i=1; i<counter; i++)); do
+        echo -e "${GREEN}$i.${NC} Use existing network: ${CYAN}${network_ids[$i]}${NC} (IP: ${YELLOW}${network_ips[$i]}${NC})"
+    done
+    echo -e "${GREEN}$((counter-1)).${NC} Enter new Network ID manually ${YELLOW}(join a different network)${NC}"
 
     return $((counter-1))
 }
 
 # Get network configuration
 configure_network() {
-    echo -e "\n${MAGENTA}${BOLD}Network Configuration${NC}"
+    echo -e "\n${MAGENTA}${BOLD}ZeroTier Network Configuration${NC}"
+
+    # Check if ZeroTier is installed, if not install it automatically
+    if ! check_zerotier_installed; then
+        echo -e "${YELLOW}ZeroTier is not installed on this system.${NC}"
+        echo -e "${CYAN}Installing ZeroTier automatically (required for GenieACS)...${NC}"
+
+        install_zerotier
+    else
+        echo -e "${GREEN}ZeroTier is already installed${NC}"
+    fi
 
     # Try to detect existing ZeroTier networks
     local networks_info
+    local network_id_to_join=""
+
     if detect_zerotier_networks; then
         networks_info=$(zerotier-cli listnetworks 2>/dev/null | grep -v "200 listnetworks <nwid>" | grep "^200 listnetworks")
 
@@ -250,14 +401,22 @@ configure_network() {
 
                 if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le "$manual_option" ]; then
                     if [ "$choice" -eq "$manual_option" ]; then
-                        # Manual entry
+                        # Manual entry - ask for new network ID to join
                         echo -e "\n${CYAN}Manual Network Configuration:${NC}"
-                        prompt_input "Enter ZeroTier Network ID" "" "ZEROTIER_NETWORK_ID"
-                        while [ -z "$ZEROTIER_NETWORK_ID" ]; do
+                        prompt_input "Enter ZeroTier Network ID to join" "" "network_id_to_join"
+                        while [ -z "$network_id_to_join" ]; do
                             echo -e "${RED}ZeroTier Network ID is required!${NC}"
-                            prompt_input "Enter ZeroTier Network ID" "" "ZEROTIER_NETWORK_ID"
+                            prompt_input "Enter ZeroTier Network ID to join" "" "network_id_to_join"
                         done
-                        ZEROTIER_IP="auto-detect"
+
+                        # Join the new network and wait for IP
+                        if join_zerotier_network "$network_id_to_join"; then
+                            ZEROTIER_NETWORK_ID="$network_id_to_join"
+                            # ZEROTIER_IP is set in join_zerotier_network function
+                        else
+                            ZEROTIER_NETWORK_ID="$network_id_to_join"
+                            ZEROTIER_IP="auto-detect"
+                        fi
                         break
                     else
                         # Use existing network
@@ -272,6 +431,13 @@ configure_network() {
 
                         if [ "$ZEROTIER_STATUS" != "OK" ]; then
                             echo -e "${YELLOW}Warning: Network status is not 'OK'. Please ensure the device is authorized in ZeroTier Central.${NC}"
+
+                            local wait_choice
+                            read -p "Do you want to wait for authorization? (Y/n): " wait_choice
+                            if [[ "$wait_choice" != "n" && "$wait_choice" != "N" ]]; then
+                                # Wait for proper authorization
+                                join_zerotier_network "$ZEROTIER_NETWORK_ID"
+                            fi
                         fi
                         break
                     fi
@@ -281,38 +447,63 @@ configure_network() {
             done
         else
             # Fallback to manual input
-            echo -e "${YELLOW}Could not parse ZeroTier network information. Using manual configuration.${NC}"
-            prompt_input "Enter ZeroTier Network ID" "" "ZEROTIER_NETWORK_ID"
-            while [ -z "$ZEROTIER_NETWORK_ID" ]; do
+            echo -e "${YELLOW}Could not parse ZeroTier network information.${NC}"
+            echo -e "${CYAN}Please provide a ZeroTier Network ID to join:${NC}\n"
+            prompt_input "Enter ZeroTier Network ID to join" "" "network_id_to_join"
+            while [ -z "$network_id_to_join" ]; do
                 echo -e "${RED}ZeroTier Network ID is required!${NC}"
-                prompt_input "Enter ZeroTier Network ID" "" "ZEROTIER_NETWORK_ID"
+                prompt_input "Enter ZeroTier Network ID to join" "" "network_id_to_join"
             done
-            ZEROTIER_IP="auto-detect"
+
+            # Join the network and wait for IP
+            if join_zerotier_network "$network_id_to_join"; then
+                ZEROTIER_NETWORK_ID="$network_id_to_join"
+                # ZEROTIER_IP is set in join_zerotier_network function
+            else
+                ZEROTIER_NETWORK_ID="$network_id_to_join"
+                ZEROTIER_IP="auto-detect"
+            fi
         fi
     else
-        # No ZeroTier detected, manual input
-        echo -e "${CYAN}Please provide your network configuration:${NC}\n"
-        prompt_input "Enter ZeroTier Network ID" "" "ZEROTIER_NETWORK_ID"
-        while [ -z "$ZEROTIER_NETWORK_ID" ]; do
+        # No existing ZeroTier networks, ask for network ID to join
+        echo -e "${CYAN}No existing ZeroTier networks found.${NC}"
+        echo -e "${CYAN}Please provide a ZeroTier Network ID to join:${NC}\n"
+        prompt_input "Enter ZeroTier Network ID to join" "" "network_id_to_join"
+        while [ -z "$network_id_to_join" ]; do
             echo -e "${RED}ZeroTier Network ID is required!${NC}"
-            prompt_input "Enter ZeroTier Network ID" "" "ZEROTIER_NETWORK_ID"
+            prompt_input "Enter ZeroTier Network ID to join" "" "network_id_to_join"
         done
-        ZEROTIER_IP="auto-detect"
+
+        # Join the network and wait for IP
+        if join_zerotier_network "$network_id_to_join"; then
+            ZEROTIER_NETWORK_ID="$network_id_to_join"
+            # ZEROTIER_IP is set in join_zerotier_network function
+        else
+            ZEROTIER_NETWORK_ID="$network_id_to_join"
+            ZEROTIER_IP="auto-detect"
+        fi
     fi
 
-    # Data directory
-    prompt_input "Data directory path" "$DATA_DIR" "DATA_DIR_INPUT"
-    DATA_DIR="$DATA_DIR_INPUT"
+    echo -e "\n${MAGENTA}${BOLD}System Configuration${NC}"
 
-    # Timezone
-    prompt_input "Timezone" "Asia/Jakarta" "TZ"
+    # Data directory - use default automatically
+    echo -e "${CYAN}Data directory: ${GREEN}$DATA_DIR${NC} ${YELLOW}(using recommended default)${NC}"
 
-    # GenieACS Interface bindings
-    echo -e "\n${CYAN}GenieACS Interface Configuration (use 0.0.0.0 for all interfaces):${NC}"
-    prompt_input "CWMP Interface (TR-069)" "0.0.0.0" "GENIEACS_CWMP_INTERFACE"
-    prompt_input "NBI Interface" "0.0.0.0" "GENIEACS_NBI_INTERFACE"
-    prompt_input "File Server Interface" "0.0.0.0" "GENIEACS_FS_INTERFACE"
-    prompt_input "Web UI Interface" "0.0.0.0" "GENIEACS_UI_INTERFACE"
+    # Timezone - use default automatically
+    TZ="Asia/Jakarta"
+    echo -e "${CYAN}Timezone: ${GREEN}$TZ${NC} ${YELLOW}(using recommended default)${NC}"
+
+    # GenieACS Interface bindings - use recommended defaults automatically
+    GENIEACS_CWMP_INTERFACE="0.0.0.0"
+    GENIEACS_NBI_INTERFACE="0.0.0.0"
+    GENIEACS_FS_INTERFACE="0.0.0.0"
+    GENIEACS_UI_INTERFACE="0.0.0.0"
+
+    echo -e "\n${CYAN}GenieACS Interface Configuration:${NC}"
+    echo -e "${CYAN}  CWMP Interface (TR-069): ${GREEN}$GENIEACS_CWMP_INTERFACE${NC} ${YELLOW}(all interfaces)${NC}"
+    echo -e "${CYAN}  NBI Interface: ${GREEN}$GENIEACS_NBI_INTERFACE${NC} ${YELLOW}(all interfaces)${NC}"
+    echo -e "${CYAN}  File Server Interface: ${GREEN}$GENIEACS_FS_INTERFACE${NC} ${YELLOW}(all interfaces)${NC}"
+    echo -e "${CYAN}  Web UI Interface: ${GREEN}$GENIEACS_UI_INTERFACE${NC} ${YELLOW}(all interfaces)${NC}"
 }
 
 # Create configuration files
@@ -369,19 +560,148 @@ copy_docker_files() {
     run_command "chmod +x $INSTALL_DIR/entrypoint.sh" "Setting executable permissions"
 }
 
+# Fix Docker registry authentication issues with comprehensive fallbacks
+fix_docker_registry() {
+    echo -e "\n${MAGENTA}${BOLD}Resolving Docker Registry Issues...${NC}"
+
+    # Step 1: Restart Docker daemon to clear cache
+    echo -e "${CYAN}Restarting Docker service to clear cache...${NC}"
+    run_command "systemctl restart docker" "Restarting Docker service"
+    sleep 5
+
+    # Step 2: Clear any existing authentication
+    echo -e "${CYAN}Clearing Docker authentication...${NC}"
+    docker logout > /dev/null 2>&1 || true
+
+    # Step 3: Configure Docker daemon for better registry handling
+    echo -e "${CYAN}Optimizing Docker daemon configuration...${NC}"
+    mkdir -p /etc/docker
+    cat > /etc/docker/daemon.json << 'EOF'
+{
+    "registry-mirrors": [
+        "https://mirror.gcr.io"
+    ],
+    "max-concurrent-downloads": 3,
+    "max-concurrent-uploads": 3,
+    "max-download-attempts": 5,
+    "storage-driver": "overlay2"
+}
+EOF
+
+    run_command "systemctl restart docker" "Applying Docker daemon configuration"
+    sleep 5
+
+    # Step 4: Comprehensive base image pulling with multiple fallbacks
+    echo -e "${CYAN}Pulling Ubuntu 22.04 base image with fallback registries...${NC}"
+
+    # List of registries to try in order
+    local registries=(
+        "ubuntu:22.04"                                    # Docker Hub (primary)
+        "public.ecr.aws/ubuntu/ubuntu:22.04"             # AWS ECR Public
+        "mcr.microsoft.com/mirror/docker/library/ubuntu:22.04"  # Microsoft Container Registry
+        "quay.io/ubuntu/ubuntu:22.04"                    # Red Hat Quay
+    )
+
+    local registry_names=(
+        "Docker Hub"
+        "AWS ECR Public"
+        "Microsoft Container Registry"
+        "Red Hat Quay"
+    )
+
+    local success=false
+    local primary_failed=false
+
+    for i in "${!registries[@]}"; do
+        local registry="${registries[$i]}"
+        local name="${registry_names[$i]}"
+
+        echo -e "${YELLOW}Trying $name: $registry${NC}"
+
+        # Try pulling with timeout
+        if timeout 180 docker pull "$registry" > /dev/null 2>&1; then
+            echo -e "${GREEN}✅ Successfully pulled from $name${NC}"
+
+            # If not the primary registry, tag it as ubuntu:22.04
+            if [ "$registry" != "ubuntu:22.04" ]; then
+                docker tag "$registry" ubuntu:22.04
+                echo -e "${GREEN}Tagged as ubuntu:22.04 for build compatibility${NC}"
+            fi
+
+            success=true
+            break
+        else
+            echo -e "${RED}❌ Failed to pull from $name${NC}"
+            if [ $i -eq 0 ]; then
+                primary_failed=true
+            fi
+        fi
+
+        # Small delay between attempts
+        sleep 2
+    done
+
+    if [ "$success" = false ]; then
+        echo -e "${RED}${BOLD}ERROR: Failed to pull Ubuntu 22.04 from all registries${NC}"
+        echo -e "${YELLOW}This could be due to:${NC}"
+        echo -e "  1. Internet connectivity issues"
+        echo -e "  2. Docker registry rate limiting"
+        echo -e "  3. Temporary registry outages"
+        echo -e "${YELLOW}Please try running the installer again in a few minutes.${NC}"
+        return 1
+    fi
+
+    # Step 5: Verify image is available
+    echo -e "${CYAN}Verifying base image availability...${NC}"
+    if docker image inspect ubuntu:22.04 > /dev/null 2>&1; then
+        echo -e "${GREEN}✅ Ubuntu 22.04 base image ready for build${NC}"
+
+        if [ "$primary_failed" = true ]; then
+            echo -e "${YELLOW}Note: Using alternative registry due to Docker Hub issues${NC}"
+        fi
+
+        return 0
+    else
+        echo -e "${RED}❌ Base image verification failed${NC}"
+        return 1
+    fi
+}
+
 # Build and start containers
 build_and_start() {
     cd "$INSTALL_DIR"
 
-    run_command "docker-compose build" "Building Docker image"
+    # Fix Docker registry issues first
+    if ! fix_docker_registry; then
+        echo -e "${RED}Failed to resolve Docker registry issues${NC}"
+        exit 1
+    fi
+
+    run_command "docker-compose build --no-cache" "Building Docker image"
     run_command "docker-compose up -d" "Starting GenieACS container"
 
     echo -e "\n${CYAN}Waiting for services to be ready...${NC}"
     sleep 10
 
-    # Show ZeroTier status
-    echo -e "\n${MAGENTA}${BOLD}ZeroTier Status:${NC}"
-    docker-compose exec genieacs zerotier-cli listnetworks 2>/dev/null || echo -e "${YELLOW}ZeroTier status will be available after network authorization${NC}"
+    # Show ZeroTier status from host (not from container)
+    echo -e "\n${MAGENTA}${BOLD}ZeroTier Status (from host):${NC}"
+    if command -v zerotier-cli > /dev/null 2>&1; then
+        if zerotier-cli listnetworks > /dev/null 2>&1; then
+            echo -e "${GREEN}ZeroTier service is running on host${NC}"
+            zerotier-cli listnetworks | grep -v "200 listnetworks <nwid>" | while IFS= read -r line; do
+                if [[ $line =~ ^200[[:space:]]listnetworks[[:space:]]([a-f0-9]+)[[:space:]]+.*[[:space:]]+([0-9\.]+/[0-9]+) ]]; then
+                    local net_id="${BASH_REMATCH[1]}"
+                    local ip_cidr="${BASH_REMATCH[2]}"
+                    local ip_only="${ip_cidr%/*}"
+                    echo -e "${CYAN}  Network: $net_id - IP: ${GREEN}$ip_only${NC}"
+                fi
+            done
+        else
+            echo -e "${YELLOW}ZeroTier service is installed but may need authorization${NC}"
+        fi
+    else
+        echo -e "${YELLOW}ZeroTier not found on host system${NC}"
+    fi
 }
 
 # Create management script
@@ -413,15 +733,26 @@ case "$1" in
         docker-compose logs -f --tail=100
         ;;
     zerotier-status)
-        echo "ZeroTier Networks:"
-        docker-compose exec genieacs zerotier-cli listnetworks
+        echo "ZeroTier Networks (from host):"
+        if command -v zerotier-cli > /dev/null 2>&1; then
+            zerotier-cli listnetworks
+        else
+            echo "ZeroTier not found on host system"
+            echo "Note: ZeroTier runs on host, not inside container"
+        fi
         ;;
     zerotier-join)
         if [ -z "$2" ]; then
             echo "Usage: $0 zerotier-join <network_id>"
             exit 1
         fi
-        docker-compose exec genieacs zerotier-cli join "$2"
+        echo "Joining ZeroTier network on host: $2"
+        if command -v zerotier-cli > /dev/null 2>&1; then
+            zerotier-cli join "$2"
+            echo "Note: Please authorize the device in ZeroTier Central dashboard"
+        else
+            echo "ZeroTier not found on host system"
+        fi
         ;;
     shell)
         docker-compose exec genieacs bash
@@ -464,11 +795,20 @@ show_final_info() {
     echo -e "  Data Directory: $DATA_DIR"
     echo -e "  Configuration: $INSTALL_DIR/.env"
 
-    echo -e "\n${CYAN}Access URLs (after ZeroTier authorization):${NC}"
-    echo -e "  Web UI: http://<zerotier-ip>:3000"
-    echo -e "  CWMP (TR-069): http://<zerotier-ip>:7547"
-    echo -e "  NBI API: http://<zerotier-ip>:7557"
-    echo -e "  File Server: http://<zerotier-ip>:7567"
+    echo -e "\n${CYAN}Access URLs:${NC}"
+    if [ "$ZEROTIER_IP" != "auto-detect" ] && [ -n "$ZEROTIER_IP" ]; then
+        echo -e "  Web UI: http://$ZEROTIER_IP:3000"
+        echo -e "  CWMP (TR-069): http://$ZEROTIER_IP:7547"
+        echo -e "  NBI API: http://$ZEROTIER_IP:7557"
+        echo -e "  File Server: http://$ZEROTIER_IP:7567"
+    else
+        echo -e "  Web UI: http://<zerotier-ip>:3000"
+        echo -e "  CWMP (TR-069): http://<zerotier-ip>:7547"
+        echo -e "  NBI API: http://<zerotier-ip>:7557"
+        echo -e "  File Server: http://<zerotier-ip>:7567"
+        echo -e "\n${YELLOW}Note: Replace <zerotier-ip> with your actual ZeroTier IP address${NC}"
+        echo -e "${YELLOW}Use 'genieacs zerotier-status' to check your ZeroTier IP${NC}"
+    fi
 
     echo -e "\n${CYAN}Management Commands:${NC}"
     echo -e "  genieacs start          - Start services"
@@ -479,18 +819,52 @@ show_final_info() {
     echo -e "  genieacs zerotier-status - Show ZeroTier status"
 
     echo -e "\n${YELLOW}Important Notes:${NC}"
-    echo -e "  1. Authorize this device in your ZeroTier Central dashboard"
-    echo -e "  2. Configure your MikroTik firewall rules if needed"
-    echo -e "  3. Configure ONUs to use: http://<zerotier-ip>:7547"
-    echo -e "  4. Check logs with: genieacs logs"
+    if [ "$ZEROTIER_IP" != "auto-detect" ] && [ -n "$ZEROTIER_IP" ]; then
+        echo -e "  1. Device is authorized and connected to ZeroTier network"
+        echo -e "  2. Configure your MikroTik firewall rules if needed"
+        echo -e "  3. Configure ONUs to use: http://$ZEROTIER_IP:7547"
+        echo -e "  4. Check logs with: genieacs logs"
+    else
+        echo -e "  1. ${RED}IMPORTANT:${NC} Authorize this device in your ZeroTier Central dashboard"
+        echo -e "  2. Wait for IP assignment before configuring ONUs"
+        echo -e "  3. Configure your MikroTik firewall rules if needed"
+        echo -e "  4. Configure ONUs to use: http://<zerotier-ip>:7547 (after getting IP)"
+        echo -e "  5. Check logs with: genieacs logs"
+        echo -e "  6. Use 'genieacs zerotier-status' to monitor ZeroTier connection"
+    fi
 
-    echo -e "\n${MAGENTA}ZeroTier Network ID: $ZEROTIER_NETWORK_ID${NC}"
+    echo -e "\n${MAGENTA}ZeroTier Network Configuration:${NC}"
+    echo -e "  Network ID: ${CYAN}$ZEROTIER_NETWORK_ID${NC}"
+    if [ "$ZEROTIER_IP" != "auto-detect" ] && [ -n "$ZEROTIER_IP" ]; then
+        echo -e "  Assigned IP: ${GREEN}$ZEROTIER_IP${NC}"
+        echo -e "  Status: ${GREEN}Connected${NC}"
+    else
+        echo -e "  Assigned IP: ${YELLOW}Waiting for authorization...${NC}"
+        echo -e "  Status: ${YELLOW}Pending authorization${NC}"
+    fi
+}
+
+# Initialize log file with proper permissions
+init_log() {
+    # Create log file with proper permissions
+    if ! touch "$LOG_FILE" 2>/dev/null; then
+        # Fallback to user's home directory if /var/log is not writable
+        LOG_FILE="$HOME/genieacs-docker-install.log"
+        touch "$LOG_FILE" 2>/dev/null || {
+            # Final fallback to current directory
+            LOG_FILE="./genieacs-docker-install.log"
+            touch "$LOG_FILE"
+        }
+    fi
+
+    # Initialize log
+    echo "GenieACS Docker Installation Log - $(date)" > "$LOG_FILE"
+    chmod 644 "$LOG_FILE" 2>/dev/null
 }
 
 # Main installation process
 main() {
-    # Initialize log
-    echo "GenieACS Docker Installation Log - $(date)" > "$LOG_FILE"
+    init_log
 
     print_banner
     check_root
@@ -500,6 +874,7 @@ main() {
 
     install_docker
     setup_directories
+    # ZeroTier installation and network configuration are now handled in configure_network
     configure_network
     create_config
     copy_docker_files
