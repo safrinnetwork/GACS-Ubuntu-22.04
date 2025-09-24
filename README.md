@@ -1,4 +1,4 @@
-# GACS-Ubuntu-22.04
+# GACS-Ubuntu-22.04 ( Only for fresh install vps )
 This is autoinstall GenieACS For ubuntu version 22.04 (Jammy)
 
 # Update 24-09-2025
@@ -23,6 +23,7 @@ This is autoinstall GenieACS For ubuntu version 22.04 (Jammy)
 ```
 - pastikan di mikrotik sudah ada vlan yang dapat terhubung dengan onu
 - di onu konfigurasi tr609 dengan vlan yang sudah terkonfigurasi di mikrotik
+- perhatikan port 58000 adalah contoh port request dari onu, silahkan sesuaikan dengan port request onu masing-masing.
 # Docker Usage
 ```
 chmod +x install-genieacs-docker
@@ -53,5 +54,5 @@ dos2unix GACS-Jammy.sh
 bash GACS-Jammy.sh
 ```
 
-# Full Tutorial
+# Tutorial [ Non Docker ]
 - https://youtu.be/p_UNuq0rfg0
