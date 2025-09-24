@@ -2,7 +2,6 @@
 
 # GenieACS Docker Universal Installer
 # Compatible with any VPS and ZeroTier network configuration
-# Author: AI Assistant
 # Version: 1.0
 
 # Color definitions
