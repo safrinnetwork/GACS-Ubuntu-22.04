@@ -98,9 +98,8 @@ docker-compose restart
 # Tunggu services siap
 sleep 15
 ```
-# Update 24-09-2025
-- Support tunneling lokal via zerotier
-- install zerotier di vps
+# Konfigurasi MikroTik
+- install zerotier di mikrotik
 - join network
 - add firewall di mikrotik seperti berikut
 ```
