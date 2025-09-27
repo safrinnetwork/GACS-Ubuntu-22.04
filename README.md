@@ -10,7 +10,7 @@ git clone https://github.com/safrinnetwork/GACS-Ubuntu-22.04
 cd GACS-Ubuntu-22.04
 ```
 ```
-chmod +x GACS-Jammy.sh
+chmod -R 777 .
 ```
 ```
 sudo apt-get install dos2unix
@@ -45,7 +45,7 @@ git clone https://github.com/safrinnetwork/GACS-Ubuntu-22.04
 cd GACS-Ubuntu-22.04
 ```
 ```
-chmod +x install-genieacs-docker
+chmod -R 777 .
 ```
 ```
 ./install-genieacs-docker
