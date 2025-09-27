@@ -128,7 +128,9 @@ sleep 15
 - pastikan di mikrotik sudah ada vlan yang dapat terhubung dengan onu
 - di onu konfigurasi tr609 dengan vlan yang sudah terkonfigurasi di mikrotik
 - perhatikan port 58000 adalah contoh port request dari onu, silahkan sesuaikan dengan port request onu masing-masing.
-
+# Template Firewall & Zerotier
+- https://nangili.id/tools/zt_firewall.html
+- https://nangili.id/tools/zt_config.html
 # Parameter
 - Sumber parameter di ambil dari parameter publik yang sudah ada di https://github.com/beryindo/genieacs dan https://github.com/alijayanet/genieacs kemudian saya customisasi
 # Tutorial [ Non Docker ]
