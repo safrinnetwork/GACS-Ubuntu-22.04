@@ -37,6 +37,12 @@ systemctl start genieacs-{cwmp,ui,nbi}
 - Pastikan Docker Sudah Terinstal
 - Jika Docker Belum Terinstal Silahkan Install Dengan Command Ini
 ```
+sudo su
+```
+```
+apt update -y && apt upgrade -y && apt autoremove -y
+```
+```
 bash <(curl -s https://raw.githubusercontent.com/safrinnetwork/Auto-Install-Docker/main/install.sh)
 ```
 ```
