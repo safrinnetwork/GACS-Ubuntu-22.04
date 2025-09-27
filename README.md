@@ -24,14 +24,63 @@ This is autoinstall GenieACS For ubuntu version 22.04 (Jammy)
 - pastikan di mikrotik sudah ada vlan yang dapat terhubung dengan onu
 - di onu konfigurasi tr609 dengan vlan yang sudah terkonfigurasi di mikrotik
 - perhatikan port 58000 adalah contoh port request dari onu, silahkan sesuaikan dengan port request onu masing-masing.
-# Docker Usage
+# Usage [ DOCKER ] - Support Ubuntu 20 Sampai 24
+- Pastikan docker sudah terinstall
 ```
 chmod +x install-genieacs-docker
 ```
 ```
 ./install-genieacs-docker
 ```
-# Usage
+- Menambahkan parameter
+```
+docker cp /home/mostech/GACS-Ubuntu-22.04/parameter/ genieacs-server:/tmp/
+```
+- (UI Settings, Charts)
+```
+docker exec genieacs-server mongorestore \
+  --db genieacs \
+  --collection config \
+  --drop \
+  /tmp/db_config_contoh/config.bson
+```
+
+- Virtual Parameters
+```
+docker exec genieacs-server mongorestore \
+  --db genieacs \
+  --collection virtualParameters \
+  --drop \
+  /tmp/db_config_contoh/virtualParameters.bson
+```
+
+- Restore Presets
+```
+docker exec genieacs-server mongorestore \
+  --db genieacs \
+  --collection presets \
+  --drop \
+  /tmp/db_config_contoh/presets.bson
+```
+
+- Restore Provisions
+```
+docker exec genieacs-server mongorestore \
+  --db genieacs \
+  --collection provisions \
+  --drop \
+  /tmp/db_config_contoh/provisions.bson
+```
+
+- Restart GenieACS
+```
+cd /opt/genieacs-docker
+docker-compose restart
+
+# Tunggu services siap
+sleep 15
+```
+# Usage [ NON DOCKER ]
 ```
 sudo su
 ```
@@ -53,6 +102,17 @@ dos2unix GACS-Jammy.sh
 ```
 bash GACS-Jammy.sh
 ```
-
+- Menambahkan parameter
+```
+cd parameter
+```
+```
+mongorestore --db genieacs --drop /root/db
+```
+```
+systemctl start genieacs-{cwmp,ui,nbi}
+```
+# Parameter
+- Sumber parameter di ambil dari parameter publik yang sudah ada di https://github.com/beryindo/genieacs dan https://github.com/alijayanet/genieacs kemudian saya customisasi
 # Tutorial [ Non Docker ]
 - https://youtu.be/p_UNuq0rfg0
