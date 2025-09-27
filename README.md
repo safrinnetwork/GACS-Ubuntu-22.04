@@ -60,7 +60,7 @@ docker exec genieacs-server mongorestore \
   --db genieacs \
   --collection config \
   --drop \
-  /tmp/db_config_contoh/config.bson
+  /tmp/parameter/config.bson
 ```
 
 - Virtual Parameters
@@ -69,7 +69,7 @@ docker exec genieacs-server mongorestore \
   --db genieacs \
   --collection virtualParameters \
   --drop \
-  /tmp/db_config_contoh/virtualParameters.bson
+  /tmp/parameter/virtualParameters.bson
 ```
 
 - Restore Presets
@@ -78,7 +78,7 @@ docker exec genieacs-server mongorestore \
   --db genieacs \
   --collection presets \
   --drop \
-  /tmp/db_config_contoh/presets.bson
+  /tmp/parameter/presets.bson
 ```
 
 - Restore Provisions
@@ -87,7 +87,7 @@ docker exec genieacs-server mongorestore \
   --db genieacs \
   --collection provisions \
   --drop \
-  /tmp/db_config_contoh/provisions.bson
+  /tmp/parameter/provisions.bson
 ```
 
 - Restart GenieACS
