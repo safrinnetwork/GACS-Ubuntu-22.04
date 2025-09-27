@@ -133,5 +133,6 @@ sleep 15
 - https://nangili.id/tools/zt_config.html
 # Parameter
 - Sumber parameter di ambil dari parameter publik yang sudah ada di https://github.com/beryindo/genieacs dan https://github.com/alijayanet/genieacs kemudian saya customisasi
-# Tutorial [ Non Docker ]
-- https://youtu.be/p_UNuq0rfg0
+# Tutorial
+- https://youtu.be/p_UNuq0rfg0 [ NON DOCKER ]
+- https://youtu.be/Jt0bW3Yq2d8?feature=shared [ DOCKER ]
