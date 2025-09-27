@@ -31,6 +31,7 @@ mongorestore --db genieacs --drop /root/db
 ```
 systemctl start genieacs-{cwmp,ui,nbi}
 ```
+- Setelah Menambahkan Parameter Login Ke GenieACS > Provisions > Klik Show Pada Inform Dan Ubah Bagian const url, const AcsUser, const AcsPass, let ConnReqUser, dan const ConnReqPass
 # Usage [ DOCKER ]
 - Support Ubuntu Mulai Dari Ubuntu 18 Sampai Dengan Ubuntu 24
 - Pastikan Docker Sudah Terinstal
@@ -98,6 +99,7 @@ docker-compose restart
 # Tunggu services siap
 sleep 15
 ```
+- Setelah Menambahkan Parameter Login Ke GenieACS > Provisions > Klik Show Pada Inform Dan Ubah Bagian const url, const AcsUser, const AcsPass, let ConnReqUser, dan const ConnReqPass
 # Konfigurasi MikroTik
 - install zerotier di mikrotik
 - join network
