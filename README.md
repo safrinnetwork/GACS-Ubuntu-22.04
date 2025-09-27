@@ -48,7 +48,7 @@ cd GACS-Ubuntu-22.04
 chmod -R 777 .
 ```
 ```
-./install-genieacs-docker
+./install-genieacs-docker.sh
 ```
 - Menambahkan parameter
 ```
