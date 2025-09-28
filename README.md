@@ -27,7 +27,7 @@
     <td align="center" width="50%">
       <a href="./README-Docker.md" title="Panduan Docker">
         <img src="https://cdn.simpleicons.org/docker/2496ED" alt="Docker logo" width="64" height="64"><br/>
-        <b>Docker (Ubuntu 18–24)</b>
+        <b>Docker</b>
       </a>
       <br/>
       <sub>Docker Engine + Compose</sub>
@@ -35,10 +35,10 @@
     <td align="center" width="50%">
       <a href="./README-NonDocker.md" title="Panduan Non-Docker (Ubuntu 22.04)">
         <img src="https://cdn.simpleicons.org/ubuntu/E95420" alt="Ubuntu logo" width="64" height="64"><br/>
-        <b>Non-Docker (Ubuntu 22.04)</b>
+        <b>Ubuntu 22.04</b>
       </a>
       <br/>
-      <sub>Ubuntu 22.04</sub>
+      <sub>Non Docker</sub>
     </td>
   </tr>
 </table>
