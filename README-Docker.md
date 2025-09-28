@@ -39,15 +39,15 @@ git clone https://github.com/safrinnetwork/GACS-Ubuntu-22.04
 cd GACS-Ubuntu-22.04
 ```
 ```bash
-# 5) Jalankan installer Docker
+# 6) Jalankan installer Docker
 chmod +x install-genieacs-docker.sh
 ./install-genieacs-docker.sh
 ```
 
 ---
 
-## Restore Virtual Parameter (Docker)
-Untuk mengembalikan konfigurasi koleksi `config`, `virtualParameters`, `presets`, dan `provisions`:
+## Install Virtual Parameter (Docker)
+Untuk Instal Parameter `config`, `virtualParameters`, `presets`, dan `provisions`:
 
 ```bash
 # 1) Salin folder parameter ke container
@@ -55,7 +55,7 @@ Untuk mengembalikan konfigurasi koleksi `config`, `virtualParameters`, `presets`
 docker cp ./parameter/ genieacs-server:/tmp/
 ```
 ```bash
-# 2) Restore koleksi ke database 'genieacs'
+# 2) Restore parameter ke database 'genieacs'
 docker exec genieacs-server mongorestore --db genieacs --collection config              --drop /tmp/parameter/config.bson
 docker exec genieacs-server mongorestore --db genieacs --collection virtualParameters   --drop /tmp/parameter/virtualParameters.bson
 docker exec genieacs-server mongorestore --db genieacs --collection presets             --drop /tmp/parameter/presets.bson
