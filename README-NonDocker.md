@@ -2,12 +2,12 @@
 
 ![Ubuntu 22.04](https://img.shields.io/badge/Ubuntu-22.04%20Jammy-E95420?logo=ubuntu&logoColor=white)
 
-> **Dukungan:** VPS **baru/fresh** yang menjalankan **Ubuntu 22.04 (Jammy)**.
+> **Hanya Untuk** VPS **baru/fresh** dengan OS **Ubuntu 22.04 (Jammy)**.
 
 ---
 
-## Ringkas
-Panduan ini memasang **GenieACS** langsung di host (tanpa Docker) dan mengembalikan koleksi parameter bawaan dari repo.
+## Catatan
+Panduan ini menginstal **GenieACS** langsung di host beserta virtual parameter dari repo yang sudah tersedia.
 
 ---
 
@@ -20,37 +20,49 @@ Panduan ini memasang **GenieACS** langsung di host (tanpa Docker) dan mengembali
 ## Instalasi
 ```bash
 # 1) Masuk sebagai root
-sudo -i
-
-# 2) Ambil repo GACS
+sudo su
+```
+```bash
+# 2) Download Script GACS
 git clone https://github.com/safrinnetwork/GACS-Ubuntu-22.04
+```
+```bash
+# 3) Masuk ke folder GACS
 cd GACS-Ubuntu-22.04
-
-# 3) Pastikan utilitas dos2unix ada
+```
+```bash
+# 4) Install dos2unix
 apt-get update -y && apt-get install -y dos2unix
-
-# 4) Konversi dan beri izin eksekusi installer
+```
+```bash
+# 5) Convert format script GACS
 dos2unix GACS-Jammy.sh
+```
+```bash
+# 6) Beri izin script GACS
 chmod +x GACS-Jammy.sh
-
-# 5) Jalankan installer
+```
+```bash
+# 7) Instal GACS
 ./GACS-Jammy.sh
 ```
 
 ---
 
-## Restore Parameter (Non‑Docker)
+## Install Parameter
 ```bash
 # 1) Masuk ke folder parameter di repo
 cd ~/GACS-Ubuntu-22.04/parameter
-
-# 2) Kembalikan dump (semua koleksi)
+```
+```
+# 2) Install parameter
 mongorestore --db genieacs --drop .
-
-# 3) Restart layanan GenieACS
+```
+```
+# 3) Restart service GenieACS
 systemctl restart genieacs-{cwmp,ui,nbi}
 ```
-> Jika dump Anda berada di lokasi lain, sesuaikan path pada langkah (2).
+> Jika dump Anda berada di lokasi lain, sesuaikan path pada langkah nomor (2).
 
 ---
 
