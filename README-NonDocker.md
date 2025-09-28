@@ -77,7 +77,18 @@ Setelah **menambahkan parameter login**, buka **GenieACS UI → Provisions → S
 Simpan perubahan agar **Inform/Connection Request** sesuai dengan kredensial dan alamat ACS Anda.
 
 ---
+## Install Zerotier & Join Network
+```bash
+# Install Zerotier
+curl -s https://install.zerotier.com | sudo bash
+```
+```
+# Join Network
+zerotier-cli join [Network id]
+```
+> **Catatan:** [Network id] diganti dengan network yang sesuai dengan network id pada akun zerotier.
 
+---
 ## Konfigurasi MikroTik (TR‑069 via ZeroTier)
 1. **Install & join** ZeroTier di MikroTik.
 2. Pastikan ada **VLAN** yang terhubung ke **ONU**.
