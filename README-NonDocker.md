@@ -111,12 +111,12 @@ zerotier-cli join [Network id]
 
 ---
 
-## Templat Bantu
-- ZeroTier Firewall Helper: https://nangili.id/tools/zt_firewall.html
-- ZeroTier Config Helper: https://nangili.id/tools/zt_config.html
+## Templat Otomatis
+- ZeroTier Firewall Helper https://nangili.id/tools/zt_firewall.html
+- ZeroTier Config Helper https://nangili.id/tools/zt_config.html
 
 ---
 
 ## Video Panduan
-- **Non‑Docker:** https://youtu.be/p_UNuq0rfg0
+- **Non‑Docker** https://youtu.be/p_UNuq0rfg0
 
