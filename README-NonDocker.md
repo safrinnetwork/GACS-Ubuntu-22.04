@@ -52,7 +52,7 @@ chmod +x GACS-Jammy.sh
 ## Install Parameter
 ```bash
 # 1) Masuk ke folder parameter di repo
-cd ~/GACS-Ubuntu-22.04/parameter
+cd parameter
 ```
 ```
 # 2) Install parameter
