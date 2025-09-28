@@ -1,12 +1,12 @@
-# GenieACS Configuration Backup
+# GenieACS Parameter Configuration
 
-## Cara Restore
+## Cara Install Parameter
 
 Untuk mengembalikan konfigurasi ini:
 
 ```bash
 # 1. Copy files ke container
-docker cp /home/mostech/GACS-Ubuntu-22.04/parameter/ genieacs-server:/tmp/
+docker cp /GACS-Ubuntu-22.04/parameter/ genieacs-server:/tmp/
 
 # 2. Restore collections
 docker exec genieacs-server mongorestore --db genieacs --collection config --drop /tmp/parameter/config.bson
@@ -18,9 +18,8 @@ docker exec genieacs-server mongorestore --db genieacs --collection provisions -
 cd /opt/genieacs-docker && docker-compose restart && sleep 15
 ```
 
-## Catatan Penting
+## Sumber Parameter
 
-- Backup ini mengandung **SEMUA** customization UI yang telah dilakukan
-- Pastikan GenieACS version yang sama (1.2.13) untuk kompatibilitas
-- Backup ini **TIDAK** mengandung data device, hanya konfigurasi UI dan parameter
-- File .metadata.json berisi informasi tambahan untuk MongoDB import/export
+- https://github.com/alijayanet/genieacs
+- github.com/beryindo/genieacs
+- R-Tech
