@@ -38,7 +38,7 @@
         <b>Non-Docker (Ubuntu 22.04)</b>
       </a>
       <br/>
-      <sub>Instal langsung di host (fresh VPS disarankan)</sub>
+      <sub>Ubuntu 22.04</sub>
     </td>
   </tr>
 </table>
