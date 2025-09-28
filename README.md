@@ -34,7 +34,7 @@
     <td align="center" width="50%">
       <a href="./README-NonDocker.md" title="Panduan Non-Docker (Ubuntu 22.04)">
         <img src="https://cdn.simpleicons.org/ubuntu/E95420" alt="Ubuntu logo" width="64" height="64"><br/>
-        <b>Ubuntu 22.04</b>
+        <b>Ubuntu</b>
       </a>
       <br/>
     </td>
