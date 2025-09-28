@@ -1,5 +1,5 @@
 <!-- README.md (utama) -->
-<h1 align="center">GACS — GenieACS Auto Install</h1>
+<h1 align="center">GenieACS Auto Install</h1>
 
 <p align="center">
   Panduan instalasi cepat GenieACS untuk dua mode: <b>Docker</b> dan <b>Non-Docker (Ubuntu 22.04)</b>.
@@ -30,7 +30,7 @@
         <b>Docker (Ubuntu 18–24)</b>
       </a>
       <br/>
-      <sub>Instal cepat dengan Docker Engine + Compose</sub>
+      <sub>Docker Engine + Compose</sub>
     </td>
     <td align="center" width="50%">
       <a href="./README-NonDocker.md" title="Panduan Non-Docker (Ubuntu 22.04)">
@@ -46,8 +46,8 @@
 ---
 
 ## Catatan
-Silakan pilih metode instalasi sesuai kebutuhan Anda:
-- **Docker**: lebih cepat, mudah di-rollback, isolasi layanan.
-- **Non-Docker**: kontrol penuh di host Ubuntu 22.04 (Jammy).
+Silakan pilih metode instalasi sesuai kebutuhan Anda
+- **Docker** - lebih cepat, mudah di-rollback, isolasi layanan.
+- **Non-Docker** - kontrol penuh di host Ubuntu 22.04 (Jammy).
 
-> Lihat juga: [README-Docker.md](./README-Docker.md) · [README-NonDocker.md](./README-NonDocker.md)
+> Manual Guide - [README-Docker.md](./README-Docker.md) · [README-NonDocker.md](./README-NonDocker.md)
