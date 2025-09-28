@@ -96,11 +96,11 @@ Setelah **menambahkan parameter login**, buka **GenieACS UI → Provisions → S
 ---
 
 ## Templat Otomatis
-- ZeroTier Firewall Helper: https://nangili.id/tools/zt_firewall.html
-- ZeroTier Config Helper: https://nangili.id/tools/zt_config.html
+- ZeroTier Firewall Helper https://nangili.id/tools/zt_firewall.html
+- ZeroTier Config Helper https://nangili.id/tools/zt_config.html
 
 ---
 
 ## Video Panduan
-- **Docker:** https://youtu.be/Jt0bW3Yq2d8?feature=shared
+- **Docker** https://youtu.be/Jt0bW3Yq2d8?feature=shared
 
