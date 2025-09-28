@@ -33,6 +33,9 @@ bash <(curl -s https://raw.githubusercontent.com/safrinnetwork/Auto-Install-Dock
 ```bash
 # 4) Download Script GACS
 git clone https://github.com/safrinnetwork/GACS-Ubuntu-22.04
+```
+```bash
+# 5) Masuk ke folder GACS
 cd GACS-Ubuntu-22.04
 ```
 ```bash
@@ -62,18 +65,6 @@ docker exec genieacs-server mongorestore --db genieacs --collection provisions  
 # 3) Restart layanan (Compose)
 cd /opt/genieacs-docker && docker-compose restart && sleep 15
 ```
-
-> **Perintah satu baris (opsional):**
-> ```bash
-> docker cp ./parameter/ genieacs-server:/tmp/ && \
-> docker exec genieacs-server bash -lc 'mongorestore --db genieacs --collection config --drop /tmp/parameter/config.bson && \
-> mongorestore --db genieacs --collection virtualParameters --drop /tmp/parameter/virtualParameters.bson && \
-> mongorestore --db genieacs --collection presets --drop /tmp/parameter/presets.bson && \
-> mongorestore --db genieacs --collection provisions --drop /tmp/parameter/provisions.bson' && \
-> (cd /opt/genieacs-docker && docker-compose restart && sleep 15)
-> ```
-
----
 
 ## Penting (Provisions → Inform)
 Setelah **menambahkan parameter login**, buka **GenieACS UI → Provisions → Show (Inform)** dan perbarui:
