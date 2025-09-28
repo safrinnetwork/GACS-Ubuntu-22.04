@@ -2,7 +2,7 @@
 <h1 align="center">GenieACS Auto Install</h1>
 
 <p align="center">
-  Panduan instalasi cepat GenieACS untuk dua mode: <b>Docker</b> dan <b>Non-Docker (Ubuntu 22.04)</b>.
+  Panduan instalasi GenieACS untuk dua mode <b>Docker</b> dan <b>Non-Docker (Ubuntu 22.04)</b>.
 </p>
 
 <p align="center">
