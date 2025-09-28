@@ -11,7 +11,9 @@
   </a>
 </p>
 
-> Pilih mode instalasi: **[Docker](./README-Docker.md)** atau **[Non-Docker (Ubuntu 22.04)](./README-NonDocker.md)**.
+> Pilih mode instalasi
+> **[Docker](./README-Docker.md)**
+> **[Non-Docker (Ubuntu 22.04)](./README-NonDocker.md)**.
 
 ## Catatan
 Silahkan pilih metode instalasi sesuai dengan kebutuhan anda.
