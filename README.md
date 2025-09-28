@@ -30,7 +30,6 @@
         <b>Docker</b>
       </a>
       <br/>
-      <sub>Docker Engine + Compose</sub>
     </td>
     <td align="center" width="50%">
       <a href="./README-NonDocker.md" title="Panduan Non-Docker (Ubuntu 22.04)">
@@ -38,7 +37,6 @@
         <b>Ubuntu 22.04</b>
       </a>
       <br/>
-      <sub>Non Docker</sub>
     </td>
   </tr>
 </table>
