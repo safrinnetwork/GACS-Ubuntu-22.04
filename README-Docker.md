@@ -2,7 +2,7 @@
 
 ![Ubuntu](https://img.shields.io/badge/Ubuntu-18.04%20%E2%80%93%2024.04-E95420?logo=ubuntu&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-Engine%20%2B%20Compose-2496ED?logo=docker&logoColor=white)
 
-> **Support** Ubuntu **18.04 hingga 24.04** dengan **Docker** & **Docker Compose**.
+> **Untuk** Ubuntu **18.04 hingga 24.04** dengan **Docker** & **Docker Compose**.
 
 ---
 
