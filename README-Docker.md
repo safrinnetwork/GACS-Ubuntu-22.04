@@ -20,18 +20,22 @@ Panduan ini menginstall **GenieACS** menggunakan Docker/Compose dan mengembalika
 ## Instalasi
 ```bash
 # 1) Masuk sebagai root
-sudo -i
-
+sudo su
+```
+```bash
 # 2) Update singkat
 apt update -y && apt upgrade -y && apt autoremove -y
-
+```
+```bash
 # 3) Pasang Docker + Compose (script otomatis)
 bash <(curl -s https://raw.githubusercontent.com/safrinnetwork/Auto-Install-Docker/main/install.sh)
-
+```
+```bash
 # 4) Download Script GACS
 git clone https://github.com/safrinnetwork/GACS-Ubuntu-22.04
 cd GACS-Ubuntu-22.04
-
+```
+```bash
 # 5) Jalankan installer Docker
 chmod +x install-genieacs-docker.sh
 ./install-genieacs-docker.sh
@@ -46,13 +50,15 @@ Untuk mengembalikan konfigurasi koleksi `config`, `virtualParameters`, `presets`
 # 1) Salin folder parameter ke container
 #   (dari direktori repo GACS)
 docker cp ./parameter/ genieacs-server:/tmp/
-
+```
+```bash
 # 2) Restore koleksi ke database 'genieacs'
 docker exec genieacs-server mongorestore --db genieacs --collection config              --drop /tmp/parameter/config.bson
 docker exec genieacs-server mongorestore --db genieacs --collection virtualParameters   --drop /tmp/parameter/virtualParameters.bson
 docker exec genieacs-server mongorestore --db genieacs --collection presets             --drop /tmp/parameter/presets.bson
 docker exec genieacs-server mongorestore --db genieacs --collection provisions          --drop /tmp/parameter/provisions.bson
-
+```
+```bash
 # 3) Restart layanan (Compose)
 cd /opt/genieacs-docker && docker-compose restart && sleep 15
 ```
