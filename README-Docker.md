@@ -2,12 +2,12 @@
 
 ![Ubuntu](https://img.shields.io/badge/Ubuntu-18.04%20%E2%80%93%2024.04-E95420?logo=ubuntu&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-Engine%20%2B%20Compose-2496ED?logo=docker&logoColor=white)
 
-> **Dukungan:** Ubuntu **18.04 hingga 24.04** dengan **Docker** & **Docker Compose**.
+> **Support:** Ubuntu **18.04 hingga 24.04** dengan **Docker** & **Docker Compose**.
 
 ---
 
-## Ringkas
-Panduan ini memasang **GenieACS** menggunakan Docker/Compose dan mengembalikan koleksi parameter dari repo.
+## Catatan
+Panduan ini menginstall **GenieACS** menggunakan Docker/Compose dan mengembalikan koleksi virtual parameter dari repo yang sudah tersedia sebelumnya.
 
 ---
 
@@ -28,7 +28,7 @@ apt update -y && apt upgrade -y && apt autoremove -y
 # 3) Pasang Docker + Compose (script otomatis)
 bash <(curl -s https://raw.githubusercontent.com/safrinnetwork/Auto-Install-Docker/main/install.sh)
 
-# 4) Ambil repo GACS
+# 4) Download Script GACS
 git clone https://github.com/safrinnetwork/GACS-Ubuntu-22.04
 cd GACS-Ubuntu-22.04
 
@@ -39,7 +39,7 @@ chmod +x install-genieacs-docker.sh
 
 ---
 
-## Restore Parameter (Docker)
+## Restore Virtual Parameter (Docker)
 Untuk mengembalikan konfigurasi koleksi `config`, `virtualParameters`, `presets`, dan `provisions`:
 
 ```bash
@@ -57,7 +57,7 @@ docker exec genieacs-server mongorestore --db genieacs --collection provisions  
 cd /opt/genieacs-docker && docker-compose restart && sleep 15
 ```
 
-> **Satu baris (opsional):**
+> **Perintah satu baris (opsional):**
 > ```bash
 > docker cp ./parameter/ genieacs-server:/tmp/ && \
 > docker exec genieacs-server bash -lc 'mongorestore --db genieacs --collection config --drop /tmp/parameter/config.bson && \
@@ -98,7 +98,7 @@ Setelah **menambahkan parameter login**, buka **GenieACS UI → Provisions → S
 
 ---
 
-## Templat Bantu
+## Templat Otomatis
 - ZeroTier Firewall Helper: https://nangili.id/tools/zt_firewall.html
 - ZeroTier Config Helper: https://nangili.id/tools/zt_config.html
 
