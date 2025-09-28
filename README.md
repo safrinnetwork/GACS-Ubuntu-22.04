@@ -1,5 +1,5 @@
 <!-- README.md (utama) -->
-<h1 align="center">GACS — GenieACS</h1>
+<h1 align="center">GACS — GenieACS Auto Install</h1>
 
 <p align="center">
   <a href="./README-Docker.md">
@@ -13,5 +13,5 @@
 
 > Pilih mode instalasi: **[Docker](./README-Docker.md)** atau **[Non-Docker (Ubuntu 22.04)](./README-NonDocker.md)**.
 
-## Ringkas
-Repo untuk instalasi dan konfigurasi GenieACS. Klik salah satu panduan di atas sesuai kebutuhan Anda.
+## Catatan
+Silahkan pilih sesuai dengan kebutuhan anda.
