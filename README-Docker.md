@@ -7,7 +7,7 @@
 ---
 
 ## Catatan
-Panduan ini menginstall **GenieACS** menggunakan Docker/Compose dan mengembalikan koleksi virtual parameter dari repo yang sudah tersedia sebelumnya.
+Panduan ini menginstal **GenieACS** menggunakan Docker/Compose dan mengembalikan koleksi virtual parameter dari repo yang sudah tersedia sebelumnya.
 
 ---
 
