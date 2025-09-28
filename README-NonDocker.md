@@ -77,19 +77,22 @@ Setelah **menambahkan parameter login**, buka **GenieACS UI → Provisions → S
 Simpan perubahan agar **Inform/Connection Request** sesuai dengan kredensial dan alamat ACS Anda.
 
 ---
-## Install Zerotier & Join Network
+## Konfigurasi Zerotier VPS
 ```bash
 # Install Zerotier
 curl -s https://install.zerotier.com | sudo bash
 ```
-```
+```bash
 # Join Network
 zerotier-cli join [Network id]
 ```
-> **Catatan:** [Network id] diganti dengan network yang sesuai dengan network id pada akun zerotier.
+> **Contoh:** [Network id] diganti dengan network yang sesuai dengan network id pada akun zerotier.
+> ```bash
+> zerotier-cli join abcd1234
+> ```
 
 ---
-## Konfigurasi MikroTik (TR‑069 via ZeroTier)
+## Konfigurasi Zerotier MikroTik (TR‑069 via ZeroTier)
 1. **Install & join** ZeroTier di MikroTik.
 2. Pastikan ada **VLAN** yang terhubung ke **ONU**.
 3. Contoh rule firewall (sesuaikan `IP_ZEROTIER_VPS`, nama interface, dan port request ONU — contoh **58000**):
