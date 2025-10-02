@@ -13,7 +13,7 @@ Panduan ini menginstal **GenieACS** menggunakan Docker/Compose beserta virtual p
 
 ## Prasyarat
 - Akses **root** ke VPS
-- Port yang dibutuhkan terbuka: **7547/TCP, 7557/TCP, 3000/TCP**
+- Jika di VPS ada firewall pastikan port yang terbuka : **7547/TCP, 7557/TCP, 3000/TCP**
 
 ---
 
