@@ -13,7 +13,7 @@ Panduan ini menginstal **GenieACS** langsung di host beserta virtual parameter d
 
 ## Prasyarat
 - Akses **root** ke VPS
-- Port yang dibutuhkan terbuka: **7547/TCP (CWMP), 7557/TCP (NBI), 3000/TCP (UI)**
+- Jika di VPS ada firewall pastikan port yang terbuka : **7547/TCP (CWMP), 7557/TCP (NBI), 3000/TCP (UI)**
 
 ---
 
