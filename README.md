@@ -47,6 +47,6 @@
 Silakan pilih metode instalasi sesuai kebutuhan Anda
 - **Docker** - lebih cepat, mudah di-rollback, isolasi layanan.
 - **Non-Docker** - kontrol penuh di host Ubuntu 22.04 (Jammy).
+- Dashboard for better visualisation https://github.com/safrinnetwork/GACS-dashboard
 
 > Manual Guide - [README-Docker.md](./README-Docker.md) · [README-NonDocker.md](./README-NonDocker.md)
-> Dashboard for better visualisation https://github.com/safrinnetwork/GACS-dashboard
