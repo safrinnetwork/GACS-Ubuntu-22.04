@@ -49,3 +49,4 @@ Silakan pilih metode instalasi sesuai kebutuhan Anda
 - **Non-Docker** - kontrol penuh di host Ubuntu 22.04 (Jammy).
 
 > Manual Guide - [README-Docker.md](./README-Docker.md) · [README-NonDocker.md](./README-NonDocker.md)
+> Dashboard for better visualisation https://github.com/safrinnetwork/GACS-dashboard
