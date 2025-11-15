@@ -1,0 +1,124 @@
+// ============================================================
+// Provision: inform - Universal ONU WiFi Auto-Config
+// Auto-configure ACS connection & WiFi for ALL ONU Devices
+// Excludes: MikroTik (no WiFi config for MikroTik)
+// Auto Set Nama Wifi Menjadi ACS_AUTO
+// ============================================================
+
+//-------------------- ACS URL -----------------------------//
+const url = "http://IP_ACS/Domain_ACS:7547";
+
+//--------------------- Interval ----------------------------//
+const informInterval = 200; // interval dalam detik (200 detik)
+
+const daily = Date.now(86400000);
+const minutes = Date.now(300000);
+const update = Date.now(60000);
+const hourly = Date.now(3590000);
+
+const informTime = Date.now() % 86400000;
+
+//-------------------- auth -----------------------------//
+const AcsUser = "msn";
+const AcsPass = "msn";
+
+//-------------------- Conn Req User and pass -----------------------------//
+let ConnReqUser = "msn";
+const ConnReqPass = "msn";
+
+const brand = declare('DeviceID.Manufacturer', {value: daily}).value[0];
+
+//-------------------------------------------------//
+// Configure ACS connection based on device type
+//-------------------------------------------------//
+if (brand !== "MikroTik") {
+//    declare("InternetGatewayDevice.ManagementServer.URL", {value: daily}, {value: url});
+    declare("InternetGatewayDevice.ManagementServer.Username", {value: daily}, {value: AcsUser});
+    declare("InternetGatewayDevice.ManagementServer.Password", {value: daily}, {value: AcsPass});
+    declare("InternetGatewayDevice.ManagementServer.ConnectionRequestUsername", {value: update}, {value: ConnReqUser});
+    declare("InternetGatewayDevice.ManagementServer.ConnectionRequestPassword", {value: update}, {value: ConnReqPass});
+    declare("InternetGatewayDevice.ManagementServer.PeriodicInformEnable", {value: daily}, {value: true});
+    declare("InternetGatewayDevice.ManagementServer.PeriodicInformInterval", {value: daily}, {value: informInterval});
+} else {
+//    declare("Device.ManagementServer.URL", {value: daily}, {value: url});
+    declare("Device.ManagementServer.Username", {value: daily}, {value: AcsUser});
+    declare("Device.ManagementServer.Password", {value: daily}, {value: AcsPass});
+    declare("Device.ManagementServer.ConnectionRequestUsername", {value: daily}, {value: ConnReqUser});
+    declare("Device.ManagementServer.ConnectionRequestPassword", {value: daily}, {value: ConnReqPass});
+    declare("Device.ManagementServer.PeriodicInformEnable", {value: daily}, {value: true});
+    declare("Device.ManagementServer.PeriodicInformInterval", {value: daily}, {value: informInterval});
+}
+
+// ============================================================
+// Universal Auto-Config WiFi: ALL ONU Devices (Except MikroTik)
+// ============================================================
+
+const now = Date.now();
+const productClass = declare("DeviceID.ProductClass", {value: now}).value[0];
+const serialNumber = declare("DeviceID.SerialNumber", {value: now}).value[0];
+const deviceId = declare("DeviceID.ID", {value: now}).value[0];
+
+log(">>> Device Connected - Brand: " + brand + ", ProductClass: " + productClass + ", SN: " + serialNumber);
+
+// ============================================================
+// Auto-Config WiFi for ALL ONU (Skip MikroTik)
+// ============================================================
+if (brand !== "MikroTik") {
+
+  log(">>> Starting Universal WiFi Auto-Config for ONU...");
+
+  // Try to get current SSID from WLAN Configuration 1
+  const wlanConfig1 = declare("InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID", {value: now});
+
+  // Check if WiFi interface exists
+  if (wlanConfig1.size && wlanConfig1.value && wlanConfig1.value[0]) {
+
+    const currentSSID = wlanConfig1.value[0];
+
+    log(">>> WiFi Interface Found - Current SSID: " + currentSSID);
+
+    // Only configure if SSID is not already "ACS_AUTO"
+    if (currentSSID !== "ACS_AUTO") {
+
+      log(">>> Auto-configuring WiFi for: " + brand + " " + productClass + " (SN: " + serialNumber + ")");
+
+      // Set SSID to "ACS_AUTO"
+      declare("InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID",
+        {value: now}, {value: "ACS_AUTO"});
+
+      // Set WiFi to Open (no password)
+      declare("InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.BeaconType",
+        {value: now}, {value: "None"});
+
+      // Enable WiFi
+      declare("InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Enable",
+        {value: now}, {value: true});
+
+      // Enable SSID Broadcast
+      declare("InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSIDAdvertisementEnabled",
+        {value: now}, {value: true});
+
+      log(">>> ✓ WiFi Auto-Config Completed: SSID='ACS_AUTO' (Open WiFi)");
+
+    } else {
+      log(">>> WiFi already configured with 'ACS_AUTO', skipping configuration");
+    }
+
+  } else {
+    log(">>> WiFi interface not found or not supported on this device");
+  }
+
+} else {
+  log(">>> MikroTik device detected - Skipping WiFi configuration");
+}
+
+log(">>> Provision 'inform' execution completed for " + brand + " " + productClass);
+
+// ============================================================
+// Notes:
+// - This provision applies to ALL ONU devices (Fiberhome, ZTE, Huawei, etc)
+// - MikroTik devices are excluded from WiFi configuration
+// - WiFi SSID will be set to "ACS_AUTO" with Open security
+// - Configuration only applies once (checked via current SSID)
+// - To change SSID or add password, edit lines 73-84
+// ============================================================

@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  genieacs:
+    build: .
+    container_name: genieacs-server
+    restart: unless-stopped
+
+    # Environment variables (can be overridden in .env file)
+    environment:
+      - GENIEACS_CWMP_INTERFACE=${GENIEACS_CWMP_INTERFACE:-0.0.0.0}
+      - GENIEACS_NBI_INTERFACE=${GENIEACS_NBI_INTERFACE:-0.0.0.0}
+      - GENIEACS_FS_INTERFACE=${GENIEACS_FS_INTERFACE:-0.0.0.0}
+      - GENIEACS_UI_INTERFACE=${GENIEACS_UI_INTERFACE:-0.0.0.0}
+      - MONGO_DATA_DIR=${MONGO_DATA_DIR:-/data/db}
+      - TZ=${TZ:-Asia/Jakarta}
+
+    # Volumes for persistent data
+    volumes:
+      - genieacs-data:/data/db
+      - genieacs-logs:/var/log/genieacs
+      - genieacs-ext:/opt/genieacs/ext
+      - genieacs-config:/opt/genieacs/config
+      # Optional: Mount custom extensions
+      - ${GENIEACS_EXT_HOST_DIR:-./ext}:/opt/genieacs/ext
+
+    # Exposed ports
+    ports:
+      - "7547:7547"  # CWMP (TR-069)
+      - "7557:7557"  # NBI (North Bound Interface)
+      - "7567:7567"  # File Server
+      - "3000:3000"  # Web UI
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+    # Resource limits (optional, adjust as needed)
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+volumes:
+  genieacs-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_DIR:-./data}/mongodb
+
+  genieacs-logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_DIR:-./data}/logs
+
+  genieacs-ext:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${DATA_DIR:-./data}/ext
+
+  genieacs-config:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./config
